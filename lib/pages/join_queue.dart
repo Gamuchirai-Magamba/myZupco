@@ -1,15 +1,34 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:my_zupco/models/RouteDetailsModel.dart';
+import 'package:my_zupco/models/Queue.dart';
 
 import '../components/constants.dart';
 
-import '../models/UserModel.dart';
-
+import '../models/UIHelper.dart';
+import '../models/ZupcoModel.dart';
 
 class JoinQueue extends StatefulWidget {
-  const JoinQueue({Key? key}) : super(key: key);
+  final String driver, destination, passenger, busStop;
+  final DateTime time;
+
+  final String routeID;
+
+  const JoinQueue(
+      {Key? key,
+      required this.driver,
+      required this.destination,
+      required this.passenger,
+      required this.busStop,
+      required this.time,
+      required this.routeID})
+      : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -17,20 +36,31 @@ class JoinQueue extends StatefulWidget {
 }
 
 class _JoinQueueState extends State<JoinQueue> {
+  ZupcoModel currentZupco = ZupcoModel();
+  final _auth = FirebaseAuth.instance;
   User? user = FirebaseAuth.instance.currentUser;
-  UserModel loggedInUser = UserModel();
-  String dropdownvalue = 'Select Taxi';
 
-  // List of items in our dropdown menu
-  var items = [
-    'ZW1242',
-    'ZW1234',
-    'ZW3456',
-    'ZW1212',
-    'ZW3412',
-  ];
+  final List<RouteDetailsModel> details = [];
+  List<String> virtualQueue = <String>[];
+
   @override
-  @override
+  void AddtoQueue() {
+    setState(() {
+      virtualQueue.add(user!.uid);
+      joinQueue();
+    });
+  }
+
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection("users/${widget.routeID}/zupcoDetails")
+        .doc(widget.routeID)
+        .get()
+        .then((value) => currentZupco = ZupcoModel.fromMap(value.data()));
+    setState(() {});
+  }
+
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return Scaffold(
@@ -39,14 +69,17 @@ class _JoinQueueState extends State<JoinQueue> {
         elevation: 0,
         title: Text(
           "Join Queue",
-          style: GoogleFonts.poppins(color: altPrimaryColor, fontSize: 23),
+          style: GoogleFonts.poppins(
+              color: altPrimaryColor,
+              fontWeight: FontWeight.w400,
+              fontSize: 23),
         ),
         centerTitle: true,
         leading: IconButton(
           icon: const Icon(
-            LineIcons.undo,
+            LineIcons.arrowLeft,
             color: altPrimaryColor,
-            size: 20,
+            size: 25.0,
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -59,31 +92,7 @@ class _JoinQueueState extends State<JoinQueue> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              height: size.height * 0.15,
-              width: size.width,
-              decoration: const BoxDecoration(
-                  color: altPrimaryColor,
-                  borderRadius: BorderRadius.all(Radius.circular(20))),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Available Taxis",
-                      style: GoogleFonts.lato(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 25)),
-                  Center(
-                      child: Text("Will contain a horizontal list of taxis",
-                          style: GoogleFonts.lato(
-                              color: kPrimaryColor,
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18))),
-                ],
-              ),
-            ),
-            SizedBox(height: size.height * 0.05),
+            SizedBox(height: size.height * 0.035),
             Container(
                 height: size.height * 0.35,
                 width: size.width,
@@ -94,11 +103,6 @@ class _JoinQueueState extends State<JoinQueue> {
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Text(" Taxi details",
-                        style: GoogleFonts.lato(
-                            color: altPrimaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 25)),
                     Column(
                       children: [
                         Row(
@@ -111,7 +115,7 @@ class _JoinQueueState extends State<JoinQueue> {
                                   children: [
                                     Column(
                                       children: [
-                                        Text("Zupco number",
+                                        Text("Driver",
                                             style: GoogleFonts.lato(
                                                 color: altPrimaryColor,
                                                 fontWeight: FontWeight.w500,
@@ -119,7 +123,7 @@ class _JoinQueueState extends State<JoinQueue> {
                                         SizedBox(
                                           height: size.height * 0.03,
                                         ),
-                                        Text("ZW1242",
+                                        Text(widget.driver,
                                             style: GoogleFonts.lato(
                                                 color: altPrimaryColor,
                                                 fontWeight: FontWeight.w300,
@@ -142,7 +146,7 @@ class _JoinQueueState extends State<JoinQueue> {
                                           SizedBox(
                                             height: size.height * 0.03,
                                           ),
-                                          Text("0",
+                                          Text(widget.passenger,
                                               style: GoogleFonts.lato(
                                                   color: altPrimaryColor,
                                                   fontWeight: FontWeight.w300,
@@ -168,7 +172,7 @@ class _JoinQueueState extends State<JoinQueue> {
                                         SizedBox(
                                           height: size.height * 0.03,
                                         ),
-                                        Text("Harare",
+                                        Text(widget.destination,
                                             style: GoogleFonts.lato(
                                                 color: altPrimaryColor,
                                                 fontWeight: FontWeight.w300,
@@ -177,7 +181,6 @@ class _JoinQueueState extends State<JoinQueue> {
                                     ),
                                   ],
                                 ),
-                              
                                 Padding(
                                   padding: const EdgeInsets.only(top: 20.0),
                                   child: Row(
@@ -192,7 +195,7 @@ class _JoinQueueState extends State<JoinQueue> {
                                           SizedBox(
                                             height: size.height * 0.03,
                                           ),
-                                          Text("Example",
+                                          Text(widget.busStop,
                                               style: GoogleFonts.lato(
                                                   color: altPrimaryColor,
                                                   fontWeight: FontWeight.w300,
@@ -208,96 +211,67 @@ class _JoinQueueState extends State<JoinQueue> {
                         )
                       ],
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 12),
-                    //   child: Row(
-                    //     children: [
-                    //       Column(
-                    //         children: [
-                    //           Text("Zupco number",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w500,
-                    //                   fontSize: 21)),
-                    //           SizedBox(
-                    //             height: size.height * 0.03,
-                    //           ),
-                    //           Text("ZW1242",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w300,
-                    //                   fontSize: 18)),
-                    //         ],
-                    //       ),
-                    //       SizedBox(
-                    //         width: size.width * 0.21,
-                    //       ),
-                    //       Column(
-                    //         children: [
-                    //           Text("Destination",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w500,
-                    //                   fontSize: 21)),
-                    //           SizedBox(
-                    //             height: size.height * 0.03,
-                    //           ),
-                    //           Text("Harare",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w300,
-                    //                   fontSize: 18)),
-                    //         ],
-                    //       )
-                    //     ],
-                    //   ),
-                    // ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 12),
-                    //   child: Row(
-                    //     children: [
-                    //       Column(
-                    //         children: [
-                    //           Text("Number of passengers",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w500,
-                    //                   fontSize: 21)),
-                    //           SizedBox(
-                    //             height: size.height * 0.03,
-                    //           ),
-                    //           Text("12",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w300,
-                    //                   fontSize: 18)),
-                    //         ],
-                    //       ),
-                    //       SizedBox(
-                    //         width: size.width * 0.07,
-                    //       ),
-                    //       Column(
-                    //         children: [
-                    //           Text("Bus-Stop",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w500,
-                    //                   fontSize: 21)),
-                    //           SizedBox(
-                    //             height: size.height * 0.03,
-                    //           ),
-                    //           Text(" Avenue",
-                    //               style: GoogleFonts.lato(
-                    //                   color: altPrimaryColor,
-                    //                   fontWeight: FontWeight.w300,
-                    //                   fontSize: 18)),
-                    //         ],
-                    //       )
-                    //     ],
-                    //   ),
-                    // ),
                   ],
                 )),
+            const SizedBox(
+              height: 55,
+            ),
+            SizedBox(
+              width: size.width,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "${widget.driver}'s Taxi Details",
+                        style: GoogleFonts.poppins(fontSize: 22),
+                      ),
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "ZUPCO NO:",
+                            style: GoogleFonts.poppins(fontSize: 18),
+                          ),
+                          SizedBox(
+                            width: size.width * 0.2,
+                          ),
+                          Text("ZW1234",
+                              style: GoogleFonts.poppins(fontSize: 18)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "NUMBER PLATE:",
+                            style: GoogleFonts.poppins(fontSize: 18),
+                          ),
+                          SizedBox(
+                            width: size.width * 0.2,
+                          ),
+                          Text("ABP 0980",
+                              style: GoogleFonts.poppins(fontSize: 18)),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Text(
+                            "COMPANY:",
+                            style: GoogleFonts.poppins(fontSize: 18),
+                          ),
+                          SizedBox(
+                            width: size.width * 0.2,
+                          ),
+                          Text("ZUPCO",
+                              style: GoogleFonts.poppins(fontSize: 18)),
+                        ],
+                      ),
+                    ]),
+              ),
+            ),
             const SizedBox(
               height: 55,
             ),
@@ -308,7 +282,9 @@ class _JoinQueueState extends State<JoinQueue> {
                     elevation: 5,
                     margin: const EdgeInsets.all(10),
                     child: ListTile(
-                      onTap: () {},
+                      onTap: () {
+                        AddtoQueue();
+                      },
                       subtitle: Text(
                         "Join Virtual Queue",
                         style: GoogleFonts.poppins(color: kPrimaryColor2),
@@ -332,5 +308,41 @@ class _JoinQueueState extends State<JoinQueue> {
         ),
       ),
     );
+  }
+
+  Stream<List<RouteDetailsModel>> getTransport() => FirebaseFirestore.instance
+      .collection('routeDetails')
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+          .map((doc) => RouteDetailsModel.fromMap(doc.data()))
+          .toList());
+
+  joinQueue() async {
+    FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
+    QueueModel details = QueueModel();
+
+    //Adding the route details to the firebase
+
+    try {
+      details.currentPassengers = virtualQueue.length;
+      await firebaseFirestore
+          .collection(
+              'routeDetails/destination: ${widget.destination}/virtualQueue')
+          .doc()
+          .set(details.toMap());
+
+      UIHelper.showAlertDialog(
+        context,
+        "Success",
+        "You have been added to the queue",
+      );
+    } on Exception catch (e) {
+      UIHelper.showAlertDialog(
+        context,
+        "Failed $e",
+        "Something went wrong!",
+      );
+    }
   }
 }

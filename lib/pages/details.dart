@@ -5,9 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+// ignore: depend_on_referenced_packages
+import 'package:intl/intl.dart';
 
 import 'package:line_icons/line_icons.dart';
-import 'package:my_zupco/models/TransportDetailsModel.dart';
+import 'package:my_zupco/models/RouteDetailsModel.dart';
+import 'package:my_zupco/models/ZupcoModel.dart';
 
 import '../components/constants.dart';
 import '../models/UIHelper.dart';
@@ -20,6 +23,9 @@ class RouteDetails extends StatefulWidget {
 }
 
 class _RouteDetailsState extends State<RouteDetails> {
+  User? user = FirebaseAuth.instance.currentUser;
+
+  ZupcoModel currentDriver = ZupcoModel();
   final _auth = FirebaseAuth.instance;
   TextEditingController destinationController = TextEditingController();
   TextEditingController passengersController = TextEditingController();
@@ -45,30 +51,42 @@ class _RouteDetailsState extends State<RouteDetails> {
     }
   }
 
-  save() async {
+  Future<void> save() async {
+    try {
+      _auth;
+      saveToFireStore();
+    } on FirebaseException catch (erroe) {
+      if (kDebugMode) {
+        print(erroe);
+      }
+    }
+  }
+
+  saveToFireStore() async {
     FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
     User? user = _auth.currentUser;
 
-    TransportDetailsModel details = TransportDetailsModel();
+    RouteDetailsModel details = RouteDetailsModel();
 
     //Adding the route details to the firebase
 
     try {
-      details.uid = DateTime.now().toIso8601String();
-      details.driver = user?.uid;
+      details.uid = user?.uid;
+      details.driver = currentDriver.driver;
       details.passengers = passengersController.text;
       details.busStopLocation = locationController.text;
       details.arrivalTime = dateTime;
+      details.destination = destinationController.text;
 
       await firebaseFirestore
           .collection('routeDetails')
-          .doc(details.uid)
+          .doc('destination: ${destinationController.text}')
           .set(details.toMap());
 
       UIHelper.showAlertDialog(
         context,
         "Success",
-        "Route Succefully Saved",
+        "Route Successfully Saved",
       );
     } on Exception catch (e) {
       // TODO
@@ -81,7 +99,19 @@ class _RouteDetailsState extends State<RouteDetails> {
   }
 
   DateTime dateTime = DateTime.now();
+
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    FirebaseFirestore.instance
+        .collection("users/${user?.uid}/zupcoDetails")
+        .doc(user?.uid)
+        .get()
+        .then((value) => currentDriver = ZupcoModel.fromMap(value.data()));
+    setState(() {});
+  }
+
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
@@ -212,7 +242,7 @@ class _RouteDetailsState extends State<RouteDetails> {
                     ),
                     SizedBox(width: size.width * 0.07),
                     Text(
-                      dateTime.toString(),
+                      DateFormat().format(dateTime),
                       style: GoogleFonts.poppins(fontSize: 16),
                     )
                   ],
@@ -227,7 +257,7 @@ class _RouteDetailsState extends State<RouteDetails> {
                         padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
                         minWidth: MediaQuery.of(context).size.width,
                         onPressed: () {
-                          saveDetails();
+                          saveToFireStore();
                         },
                         child: const Text(
                           "Save Route",

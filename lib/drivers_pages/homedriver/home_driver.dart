@@ -5,8 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:line_icons/line_icons.dart';
 import 'package:my_zupco/drivers_pages/driver_information.dart';
-import 'package:my_zupco/models/zupcoModel.dart';
+import 'package:my_zupco/models/ZupcoModel.dart';
 import 'package:my_zupco/pages/details.dart';
+import 'package:my_zupco/pages/transactions.dart';
 
 import '../../components/constants.dart';
 
@@ -36,7 +37,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
     // TODO: implement initState
     super.initState();
     FirebaseFirestore.instance
-        .collection("zupco")
+        .collection("users/${user?.uid}/zupcoDetails")
         .doc(user?.uid)
         .get()
         .then((value) => currentZupco = ZupcoModel.fromMap(value.data()));
@@ -230,7 +231,8 @@ class _DriverHomePageState extends State<DriverHomePage> {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return const Maps();
+                        // ignore: prefer_collection_literals
+                        return    const Maps();
                       },
                     ),
                   );
@@ -291,7 +293,7 @@ class _DriverHomePageState extends State<DriverHomePage> {
                           color: kPrimaryColor2,
                           borderRadius: BorderRadius.all(Radius.circular(20))),
                       child: Center(
-                          child: Text("Set Destination",
+                          child: Text("Plan Route",
                               style: GoogleFonts.lato(
                                   color: altPrimaryColor,
                                   fontWeight: FontWeight.bold,
@@ -338,7 +340,16 @@ class _DriverHomePageState extends State<DriverHomePage> {
                 child: MaterialButton(
                     padding: const EdgeInsets.fromLTRB(20, 15, 20, 15),
                     minWidth: MediaQuery.of(context).size.width,
-                    onPressed: () {},
+                     onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return const RecentTransactionsPage();
+                        },
+                      ),
+                    );
+                  },
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       mainAxisAlignment: MainAxisAlignment.center,

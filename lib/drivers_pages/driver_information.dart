@@ -8,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:line_icons/line_icons.dart';
 
-import 'package:my_zupco/models/zupcoModel.dart';
+import 'package:my_zupco/models/ZupcoModel.dart';
 
 import '../components/constants.dart';
 import '../models/UIHelper.dart';
@@ -65,7 +65,7 @@ class _DriverInformationState extends State<DriverInformation> {
       details.regNo = zupcoRegNoController.text;
 
       await firebaseFirestore
-          .collection('zupco')
+          .collection('users/${user?.uid}/zupcoDetails')
           .doc(details.uid)
           .set(details.toMap());
 

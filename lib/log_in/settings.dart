@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:my_zupco/pages/Settings_pages/reports.dart';
 
 import '../components/constants.dart';
 
@@ -123,7 +124,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     margin: const EdgeInsets.all(10),
                     child: ListTile(
 
-                      onTap: () {},
+                      onTap: () {
+                         Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return const Reports();
+                    },
+                  ),
+                );
+                      },
 
                       contentPadding:
                       const EdgeInsets.only(right: 30, left: 36),

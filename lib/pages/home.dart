@@ -4,10 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:location/location.dart';
 import 'package:line_icons/line_icons.dart';
-import 'package:my_zupco/pages/Settings_pages/destination.dart';
+import 'package:my_zupco/pages/Settings_pages/trip-booking.dart';
 import 'package:my_zupco/pages/join_queue.dart';
 import 'package:my_zupco/pages/map.dart';
 import 'package:my_zupco/pages/schedule.dart';
+import 'package:my_zupco/pages/transactions.dart';
 import '../components/constants.dart';
 import 'banners.dart';
 
@@ -36,8 +37,6 @@ void getCurrentLocation() async {
       currentLocation = location;
     },
   );
-
- 
 }
 
 class _HomeState extends State<Home> {
@@ -55,7 +54,7 @@ class _HomeState extends State<Home> {
           const SizedBox(height: 20),
           Text(" Welcome, Passenger",
               style: GoogleFonts.poppins(
-                  color: kPrimaryColor,
+                  color: Colors.grey.shade800,
                   fontWeight: FontWeight.w600,
                   fontSize: 30)),
           const SizedBox(height: 12),
@@ -64,7 +63,7 @@ class _HomeState extends State<Home> {
               Text(" Nearest Zupco Details",
                   textAlign: TextAlign.end,
                   style: GoogleFonts.poppins(
-                      color: kPrimaryColor,
+                      color: Colors.grey.shade800,
                       fontWeight: FontWeight.w300,
                       fontSize: 24)),
               const Icon(LineIcons.alternateArrowCircleRightAlt)
@@ -119,7 +118,7 @@ class _HomeState extends State<Home> {
                           opacity: 80,
                           image: AssetImage("assets/maps/map.png"),
                           fit: BoxFit.cover),
-                      color: kPrimaryColor2,
+                      color: Colors.grey,
                       borderRadius: BorderRadius.all(Radius.circular(15))),
                   child: Center(
                     child: Row(
@@ -155,7 +154,7 @@ class _HomeState extends State<Home> {
                     context,
                     MaterialPageRoute(
                       builder: (context) {
-                        return const Destination();
+                        return const TripBooking();
                       },
                     ),
                   );
@@ -167,7 +166,7 @@ class _HomeState extends State<Home> {
                         color: kPrimaryColor2,
                         borderRadius: BorderRadius.all(Radius.circular(20))),
                     child: Center(
-                        child: Text("Set Destination",
+                        child: Text("Trip booking",
                             style: GoogleFonts.lato(
                                 color: altPrimaryColor,
                                 fontWeight: FontWeight.bold,
@@ -187,7 +186,7 @@ class _HomeState extends State<Home> {
                           color: kPrimaryColor2,
                           borderRadius: BorderRadius.all(Radius.circular(20))),
                       child: Center(
-                          child: Text("Join Queue",
+                          child: Text("Zupco Payments",
                               style: GoogleFonts.lato(
                                   color: altPrimaryColor,
                                   fontWeight: FontWeight.bold,
@@ -202,7 +201,8 @@ class _HomeState extends State<Home> {
 
 Route createRoute() {
   return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => const JoinQueue(),
+    pageBuilder: (context, animation, secondaryAnimation) =>
+        const RecentTransactionsPage(),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       const begin = Offset(0.0, 1.0);
       const end = Offset.zero;
